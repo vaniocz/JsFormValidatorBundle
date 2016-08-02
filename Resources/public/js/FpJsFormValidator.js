@@ -76,6 +76,9 @@ function FpJsFormElement() {
          * @type {HTMLElement}
          */
         var domNode = this;
+        if (domNode.parentNode && domNode.parentNode.className && (' ' + domNode.parentNode.className + ' ').replace(/[\n\t]/g, ' ').indexOf(' ' + FpJsFormValidator.groupClass + ' ') !== -1 ) {
+            domNode = domNode.parentNode;
+        }
         var ul = FpJsFormValidator.getDefaultErrorContainerNode(domNode);
         if (ul) {
             var len = ul.childNodes.length;
@@ -87,7 +90,7 @@ function FpJsFormElement() {
         }
 
         if (!errors.length) {
-            if (ul && !ul.childNodes) {
+            if (ul && !ul.childNodes.length) {
                 ul.parentNode.removeChild(ul);
             }
             return;
@@ -96,7 +99,7 @@ function FpJsFormElement() {
         if (!ul) {
             ul = document.createElement('ul');
             ul.className = FpJsFormValidator.errorClass;
-            domNode.parentNode.insertBefore(ul, domNode);
+            domNode.parentNode.insertBefore(ul, FpJsFormValidator.insertMethod === 'after' ? domNode.nextSibling : domNode);
         }
 
         var li;
@@ -370,6 +373,8 @@ var FpJsBaseConstraint = {
 var FpJsFormValidator = new function () {
     this.forms = {};
     this.errorClass = 'form-errors';
+    this.groupClass = 'input-group';
+    this.insertMethod = 'before';
     this.config = {};
     this.ajax = new FpJsAjaxRequest();
     this.customizeMethods = new FpJsCustomizeMethods();
@@ -809,7 +814,7 @@ var FpJsFormValidator = new function () {
      * @returns {Node}
      */
     this.getDefaultErrorContainerNode = function (htmlElement) {
-        var ul = htmlElement.previousSibling;
+        var ul = FpJsFormValidator.insertMethod === 'after' ? htmlElement.nextSibling : htmlElement.previousSibling;
         if (!ul || ul.className !== this.errorClass) {
             return null;
         } else {
