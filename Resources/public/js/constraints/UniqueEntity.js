@@ -32,6 +32,8 @@ function FpJsFormValidatorBundleFormConstraintUniqueEntity() {
             return [];
         }
 
+        var data = this.getValues(element, this.fields);
+
         FpJsFormValidator.ajax.sendRequest(
             route,
             {
@@ -45,13 +47,13 @@ function FpJsFormValidatorBundleFormConstraintUniqueEntity() {
                 groups:           this.groups,
 
                 entityName:       this.entityName,
-                data:             this.getValues(element, this.fields)
+                data:             data
             },
             function(response){
                 response = JSON.parse(response);
                 var errors = [];
                 if (false === response) {
-                    errors.push(self.message);
+                    errors.push(self.message.replace('{{ value }}', data[self.fields[0]]));
                 }
                 FpJsFormValidator.customize(errorPath.domNode, 'showErrors', {
                     errors: errors,

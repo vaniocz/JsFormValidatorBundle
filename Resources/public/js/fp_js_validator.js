@@ -1972,6 +1972,8 @@ function FpJsFormValidatorBundleFormConstraintUniqueEntity() {
             return [];
         }
 
+        var data = this.getValues(element, this.fields);
+
         FpJsFormValidator.ajax.sendRequest(
             route,
             {
@@ -1991,7 +1993,7 @@ function FpJsFormValidatorBundleFormConstraintUniqueEntity() {
                 response = JSON.parse(response);
                 var errors = [];
                 if (false === response) {
-                    errors.push(self.message);
+                    errors.push(self.message.replace('{{ value }}', data[self.fields[0]]));
                 }
                 FpJsFormValidator.customize(errorPath.domNode, 'showErrors', {
                     errors: errors,
