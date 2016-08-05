@@ -1,3 +1,38 @@
+function previousElementSibling(element) {
+    var e = element ? element.previousSibling : null;
+    while (e && 1 !== e.nodeType) e = e.previousSibling;
+
+    return e;
+}
+
+function nextElementSibling(element) {
+    var e = element ? element.nextSibling : null;
+    while (e && 1 !== e.nodeType) e = e.nextSibling;
+
+    return e;
+}
+
+function hasClass(element, className) {
+    return element && element.className && (' ' + element.className + ' ').replace(/[\n\t]/g, ' ').indexOf(' ' + className + ' ') !== -1;
+}
+
+function escapeRegExp(text) {
+  return text.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+}
+
+function removeClass(element, className) {
+    if (element && element.className) {
+        element.className = element.className.replace(new RegExp(' ?\\b' + escapeRegExp('has-error') + '\\b', 'g'), '');
+    }
+}
+
+function addClass(element, className) {
+    if (element) {
+        removeClass(element, className);
+        element.className += ' ' + className;
+    }
+}
+
 function FpJsFormElement() {
     this.id = '';
     this.name = '';
@@ -76,7 +111,7 @@ function FpJsFormElement() {
          * @type {HTMLElement}
          */
         var domNode = this;
-        if (domNode.parentNode && domNode.parentNode.className && (' ' + domNode.parentNode.className + ' ').replace(/[\n\t]/g, ' ').indexOf(' ' + FpJsFormValidator.groupClass + ' ') !== -1 ) {
+        if (hasClass(domNode.parentNode, FpJsFormValidator.inputGroupClass)) {
             domNode = domNode.parentNode;
         }
         var ul = FpJsFormValidator.getDefaultErrorContainerNode(domNode);
@@ -89,17 +124,26 @@ function FpJsFormElement() {
             }
         }
 
+        var container = domNode.parentNode;
+
         if (!errors.length) {
-            if (ul && !ul.childNodes.length) {
-                ul.parentNode.removeChild(ul);
+            if (!ul || !ul.childNodes.length) {
+                if (ul) {
+                    ul.parentNode.removeChild(ul);
+                }
+
+                removeClass(container, FpJsFormValidator.hasErrorClass);
             }
+
             return;
         }
+
+        addClass(container, FpJsFormValidator.hasErrorClass);
 
         if (!ul) {
             ul = document.createElement('ul');
             ul.className = FpJsFormValidator.errorClass;
-            domNode.parentNode.insertBefore(ul, FpJsFormValidator.insertMethod === 'after' ? domNode.nextSibling : domNode);
+            domNode.parentNode.insertBefore(ul, FpJsFormValidator.insertMethod === 'after' ? nextElementSibling(domNode) : domNode);
         }
 
         var li;
@@ -373,7 +417,8 @@ var FpJsBaseConstraint = {
 var FpJsFormValidator = new function () {
     this.forms = {};
     this.errorClass = 'form-errors';
-    this.groupClass = 'input-group';
+    this.inputGroupClass = 'input-group';
+    this.hasErrorClass = 'has-error';
     this.insertMethod = 'before';
     this.config = {};
     this.ajax = new FpJsAjaxRequest();
@@ -814,12 +859,11 @@ var FpJsFormValidator = new function () {
      * @returns {Node}
      */
     this.getDefaultErrorContainerNode = function (htmlElement) {
-        var ul = FpJsFormValidator.insertMethod === 'after' ? htmlElement.nextSibling : htmlElement.previousSibling;
-        if (!ul || ul.className !== this.errorClass) {
-            return null;
-        } else {
-            return ul;
-        }
+        var ul = FpJsFormValidator.insertMethod === 'after'
+            ? nextElementSibling(htmlElement)
+            : previousElementSibling(htmlElement)
+
+        return hasClass(ul, this.errorClass) ? ul : null;
     };
 
     /**
