@@ -59,6 +59,25 @@ function FpJsFormValidatorBundleFormConstraintUniqueEntity() {
                     errors: errors,
                     sourceId: 'unique-entity-' + self.uniqueId
                 });
+                var activeElement;
+
+                try {
+                    activeElement = 'activeElement' in document ? document.activeElement : document.querySelector(':focus');
+                } catch (e) {}
+
+                if (!('focus' in element)) {
+                    return [];
+                }
+
+                if (
+                    !activeElement
+                    || !activeElement.form
+                    || activeElement.form !== element.form
+                    || activeElement.getAttribute('type') === 'submit'
+                    || activeElement.tagName.toLowerCase() === 'button'
+                ) {
+                    element.focus();
+                }
             }
         );
 

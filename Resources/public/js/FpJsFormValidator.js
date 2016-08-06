@@ -33,6 +33,14 @@ function addClass(element, className) {
     }
 }
 
+function getActiveElement() {
+    try {
+        return 'activeElement' in document ? document.activeElement : document.querySelector(':focus');
+    } catch (e) {}
+
+    return null;
+}
+
 function FpJsFormElement() {
     this.id = '';
     this.name = '';
@@ -152,6 +160,22 @@ function FpJsFormElement() {
             li.className = sourceId;
             li.innerHTML = errors[i];
             ul.appendChild(li);
+        }
+
+        if (!('focus' in this)) {
+            return;
+        }
+
+        var activeElement = getActiveElement();
+
+        if (
+            !activeElement
+            || !activeElement.form
+            || activeElement.form !== this.form
+            || activeElement.getAttribute('type') === 'submit'
+            || activeElement.tagName.toLowerCase() === 'button'
+        ) {
+            this.focus();
         }
     };
 
