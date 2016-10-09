@@ -1,45 +1,38 @@
-function previousElementSibling(element) {
-    var e = element ? element.previousSibling : null;
-    while (e && 1 !== e.nodeType) e = e.previousSibling;
+var FpJsDomUtility = {
+    previousElementSibling: function (element) {
+        var e = element ? element.previousSibling : null;
+        while (e && 1 !== e.nodeType) e = e.previousSibling;
 
-    return e;
-}
+        return e;
+    },
+    nextElementSibling: function (element) {
+        var e = element ? element.nextSibling : null;
+        while (e && 1 !== e.nodeType) e = e.nextSibling;
 
-function nextElementSibling(element) {
-    var e = element ? element.nextSibling : null;
-    while (e && 1 !== e.nodeType) e = e.nextSibling;
+        return e;
+    },
+    hasClass: function (element, className) {
+        return element && element.className && (' ' + element.className + ' ').replace(/[\n\t]/g, ' ').indexOf(' ' + className + ' ') !== -1;
+    },
+    removeClass: function (element, className) {
+        if (element && element.className) {
+            element.className = element.className.replace(new RegExp(' ?\\b' + className.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&') + '\\b', 'g'), '');
+        }
+    },
+    addClass: function (element, className) {
+        if (element) {
+            FpJsDomUtility.removeClass(element, className);
+            element.className += ' ' + className;
+        }
+    },
+    getActiveElement: function () {
+        try {
+            return 'activeElement' in document ? document.activeElement : document.querySelector(':focus');
+        } catch (e) {}
 
-    return e;
-}
-
-function hasClass(element, className) {
-    return element && element.className && (' ' + element.className + ' ').replace(/[\n\t]/g, ' ').indexOf(' ' + className + ' ') !== -1;
-}
-
-function escapeRegExp(text) {
-  return text.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
-}
-
-function removeClass(element, className) {
-    if (element && element.className) {
-        element.className = element.className.replace(new RegExp(' ?\\b' + escapeRegExp('has-error') + '\\b', 'g'), '');
+        return null;
     }
-}
-
-function addClass(element, className) {
-    if (element) {
-        removeClass(element, className);
-        element.className += ' ' + className;
-    }
-}
-
-function getActiveElement() {
-    try {
-        return 'activeElement' in document ? document.activeElement : document.querySelector(':focus');
-    } catch (e) {}
-
-    return null;
-}
+};
 
 function FpJsFormElement() {
     this.id = '';
@@ -119,7 +112,7 @@ function FpJsFormElement() {
          * @type {HTMLElement}
          */
         var domNode = this;
-        if (hasClass(domNode.parentNode, FpJsFormValidator.inputGroupClass)) {
+        if (FpJsDomUtility.hasClass(domNode.parentNode, FpJsFormValidator.inputGroupClass)) {
             domNode = domNode.parentNode;
         }
         var ul = FpJsFormValidator.getDefaultErrorContainerNode(domNode);
@@ -140,18 +133,21 @@ function FpJsFormElement() {
                     ul.parentNode.removeChild(ul);
                 }
 
-                removeClass(container, FpJsFormValidator.hasErrorClass);
+                FpJsDomUtility.removeClass(container, FpJsFormValidator.hasErrorClass);
             }
 
             return;
         }
 
-        addClass(container, FpJsFormValidator.hasErrorClass);
+        FpJsDomUtility.addClass(container, FpJsFormValidator.hasErrorClass);
 
         if (!ul) {
             ul = document.createElement('ul');
             ul.className = FpJsFormValidator.errorClass;
-            domNode.parentNode.insertBefore(ul, FpJsFormValidator.insertMethod === 'after' ? nextElementSibling(domNode) : domNode);
+            domNode.parentNode.insertBefore(
+                ul,
+                FpJsFormValidator.insertMethod === 'after' ? FpJsDomUtility.nextElementSibling(domNode) : domNode
+            );
         }
 
         var li;
@@ -166,7 +162,7 @@ function FpJsFormElement() {
             return;
         }
 
-        var activeElement = getActiveElement();
+        var activeElement = FpJsDomUtility.getActiveElement();
 
         if (
             !activeElement
@@ -884,10 +880,10 @@ var FpJsFormValidator = new function () {
      */
     this.getDefaultErrorContainerNode = function (htmlElement) {
         var ul = FpJsFormValidator.insertMethod === 'after'
-            ? nextElementSibling(htmlElement)
-            : previousElementSibling(htmlElement)
+            ? FpJsDomUtility.nextElementSibling(htmlElement)
+            : FpJsDomUtility.previousElementSibling(htmlElement);
 
-        return hasClass(ul, this.errorClass) ? ul : null;
+        return FpJsDomUtility.hasClass(ul, this.errorClass) ? ul : null;
     };
 
     /**
