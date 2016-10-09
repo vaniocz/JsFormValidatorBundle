@@ -31,6 +31,18 @@ var FpJsDomUtility = {
         } catch (e) {}
 
         return null;
+    },
+    getOffset: function (element) {
+        var rect = element.getBoundingClientRect();
+        var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+        var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
+        var clientTop = document.documentElement.clientTop || document.body.clientTop || 0;
+        var clientLeft = document.documentElement.clientLeft || document.body.clientLeft || 0;
+
+        return {
+            top: Math.round(rect.top +  scrollTop - clientTop),
+            left: Math.round(rect.left + scrollLeft - clientLeft)
+        };
     }
 };
 
@@ -54,16 +66,8 @@ function FpJsFormElement() {
         return ['Default'];
     };
 
-    this.validate = function () {
-        if (this.disabled) {
-            return true;
-        }
-
-        var self = this;
-        var sourceId = 'form-error-' + String(this.id).replace(/_/g, '-');
-        self.errors[sourceId] = FpJsFormValidator.validateElement(self);
-
-        var errorPath = FpJsFormValidator.getErrorPathElement(self);
+    this.getDomNode = function () {
+        var errorPath = FpJsFormValidator.getErrorPathElement(this);
         var domNode = errorPath.domNode;
         if (!domNode) {
             for (var childName in errorPath.children) {
@@ -74,16 +78,63 @@ function FpJsFormElement() {
                 }
             }
         }
+
+        return domNode;
+    };
+
+    this.validate = function () {
+        if (this.disabled) {
+            return true;
+        }
+
+        var self = this;
+        var sourceId = 'form-error-' + String(this.id).replace(/_/g, '-');
+        self.errors[sourceId] = FpJsFormValidator.validateElement(self);
+
+        var errorPath = FpJsFormValidator.getErrorPathElement(self);
+        var domNode = self.getDomNode();
         errorPath.showErrors.apply(domNode, [self.errors[sourceId], sourceId]);
 
-        return self.errors[sourceId].length == 0;
+        if (self.errors[sourceId].length === 0) {
+            return true;
+        }
+
+        if (!('focus' in domNode)) {
+            return false;
+        }
+
+        var activeElement = FpJsDomUtility.getActiveElement();
+
+        if (
+            !activeElement
+            || !activeElement.form
+            || activeElement.form !== domNode.form
+            || activeElement.getAttribute('type') === 'submit'
+            || activeElement.tagName.toLowerCase() === 'button'
+        ) {
+            domNode.focus();
+        }
+
+        return false;
     };
 
     this.validateRecursively = function () {
         this.validate();
+        var children = [];
 
         for (var childName in this.children) {
-            this.children[childName].validateRecursively();
+            children.push(this.children[childName]);
+        }
+
+        children.sort(function (a, b) {
+            var aOffset = FpJsDomUtility.getOffset(a.getDomNode());
+            var bOffset = FpJsDomUtility.getOffset(b.getDomNode());
+
+            return aOffset.top === bOffset.top ? aOffset.left - bOffset.left : aOffset.top - bOffset.top;
+        });
+
+        for (var i = 0; i < children.length; i++) {
+            children[i].validateRecursively();
         }
     };
 
@@ -156,22 +207,6 @@ function FpJsFormElement() {
             li.className = sourceId;
             li.innerHTML = errors[i];
             ul.appendChild(li);
-        }
-
-        if (!('focus' in this)) {
-            return;
-        }
-
-        var activeElement = FpJsDomUtility.getActiveElement();
-
-        if (
-            !activeElement
-            || !activeElement.form
-            || activeElement.form !== this.form
-            || activeElement.getAttribute('type') === 'submit'
-            || activeElement.tagName.toLowerCase() === 'button'
-        ) {
-            this.focus();
         }
     };
 
