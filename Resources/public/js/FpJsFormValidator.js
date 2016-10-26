@@ -99,21 +99,7 @@ function FpJsFormElement() {
             return true;
         }
 
-        if (!('focus' in domNode)) {
-            return false;
-        }
-
-        var activeElement = FpJsDomUtility.getActiveElement();
-
-        if (
-            !activeElement
-            || !activeElement.form
-            || activeElement.form !== domNode.form
-            || activeElement.getAttribute('type') === 'submit'
-            || activeElement.tagName.toLowerCase() === 'button'
-        ) {
-            domNode.focus();
-        }
+        this.focus();
 
         return false;
     };
@@ -208,6 +194,45 @@ function FpJsFormElement() {
             li.innerHTML = errors[i];
             ul.appendChild(li);
         }
+    };
+
+    this.focus = function () {
+        var domNode = this.getFocusDomNode();
+
+        if (!domNode) {
+            return;
+        }
+
+        var activeElement = FpJsDomUtility.getActiveElement();
+
+        if (
+            !activeElement
+            || !activeElement.form
+            || activeElement.form !== domNode.form
+            || activeElement.getAttribute('type') === 'submit'
+            || activeElement.tagName.toLowerCase() === 'button'
+        ) {
+            domNode.focus();
+        }
+    };
+
+    this.getFocusDomNode = function () {
+        var domNode = this.getDomNode();
+
+        if ('focus' in domNode && 'value' in domNode) {
+            return domNode;
+        }
+
+        for (var childName in this.children) {
+            var child = this.children[childName];
+            domNode = child.getDomNode();
+
+            if ('focus' in domNode && 'value' in domNode) {
+                return domNode;
+            }
+        }
+
+        return undefined;
     };
 
     this.onValidate = function (errors, event) {
@@ -693,6 +718,14 @@ var FpJsFormValidator = new function () {
             }
         } else {
             value = this.getSpecifiedElementTypeValue(element);
+
+            if (value === undefined) {
+                value = this.getFirstChildValue(element);
+
+                if (value !== undefined) {
+                    return value;
+                }
+            }
         }
 
         while (i--) {
@@ -745,6 +778,23 @@ var FpJsFormValidator = new function () {
         }
 
         return value;
+    };
+
+    this.getFirstChildValue = function (element) {
+        for (var childName in element.children) {
+            var child = element.children[childName];
+            value = this.getInputValue(child);
+
+            if (value === undefined) {
+                value = this.getSpecifiedElementTypeValue(element);
+            }
+
+            if (value !== undefined) {
+                return value;
+            }
+        }
+
+        return undefined;
     };
 
     /**
