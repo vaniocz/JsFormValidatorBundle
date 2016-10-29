@@ -773,6 +773,8 @@ var FpJsFormValidator = new function () {
                     value.push(field.options[len].value);
                 }
             }
+        } else if ('Symfony\\Component\\Form\\Extension\\Core\\Type\\FileType' == element.type) {
+            value = Array.prototype.slice.call(element.domNode.files);
         } else {
             value = this.getInputValue(element);
         }
