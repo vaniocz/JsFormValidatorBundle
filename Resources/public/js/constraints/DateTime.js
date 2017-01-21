@@ -12,7 +12,7 @@ function SymfonyComponentValidatorConstraintsDateTime() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (!f.isValueEmty(value) && !regexp.test(value)) {
+        if (!f.isValueEmpty(value) && !regexp.test(value)) {
             errors.push(this.message.replace('{{ value }}', FpJsBaseConstraint.formatValue(value)));
         }
 

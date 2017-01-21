@@ -15,7 +15,7 @@ function SymfonyComponentValidatorConstraintsRange() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (f.isValueEmty(value)) {
+        if (f.isValueEmpty(value)) {
             return errors;
         }
         if (isNaN(value)) {
