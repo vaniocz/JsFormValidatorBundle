@@ -12,7 +12,7 @@ function SymfonyComponentValidatorConstraintsEqualTo() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (!f.isValueEmty(value) && this.value != value) {
+        if (!f.isValueEmpty(value) && this.value != value) {
             errors.push(
                 this.message
                     .replace('{{ value }}', FpJsBaseConstraint.formatValue(value))

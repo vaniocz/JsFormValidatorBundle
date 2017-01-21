@@ -13,7 +13,7 @@ function SymfonyComponentValidatorConstraintsRegex() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (!f.isValueEmty(value) && !this.pattern.test(value)) {
+        if (!f.isValueEmpty(value) && !this.pattern.test(value)) {
             errors.push(this.message.replace('{{ value }}', FpJsBaseConstraint.formatValue(value)));
         }
 

@@ -11,7 +11,7 @@ function SymfonyComponentValidatorConstraintsNotBlank() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (f.isValueEmty(value)) {
+        if (f.isValueEmpty(value)) {
             errors.push(this.message.replace('{{ value }}', FpJsBaseConstraint.formatValue(value)));
         }
 

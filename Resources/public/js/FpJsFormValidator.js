@@ -46,9 +46,9 @@ var FpJsDomUtility = {
     }
 };
 
-function FpJsFormError(message) {
+function FpJsFormError(message, atPath) {
     this.message = message;
-    this.atPath = null;
+    this.atPath = atPath;
 
     this.getTarget = function (rootElement) {
         if (!this.atPath) {
@@ -92,6 +92,22 @@ function FpJsFormElement() {
         return ['Default'];
     };
 
+    this.get = function (stringPath) {
+        var path = stringPath.split('.');
+        var targetElement = this;
+        var pathSegment;
+
+        while (pathSegment = path.shift()) {
+            if (!targetElement.children[pathSegment]) {
+                throw new Error('Invalid form element path "' + stringPath + '"');
+            }
+
+            targetElement = targetElement.children[pathSegment];
+        }
+
+        return targetElement;
+    };
+
     this.getDomNode = function () {
         var errorPath = FpJsFormValidator.getErrorPathElement(this);
         var domNode = errorPath.domNode;
@@ -106,6 +122,10 @@ function FpJsFormElement() {
         }
 
         return domNode;
+    };
+
+    this.getValue = function () {
+        return FpJsFormValidator.getElementValue(this);
     };
 
     this.validate = function () {
@@ -667,7 +687,7 @@ var FpJsFormValidator = new function () {
      */
     this.validateElement = function (element) {
         var errors = [];
-        var value = this.getElementValue(element);
+        var value = element.getValue();
 
         for (var type in element.data) {
             if ('entity' == type && element.parent && !this.shouldValidEmbedded(element)) {
@@ -1225,7 +1245,7 @@ var FpJsFormValidator = new function () {
      *
      * @returns boolean
      */
-    this.isValueEmty = function (value) {
+    this.isValueEmpty = function (value) {
         return [undefined, null, false].indexOf(value) >= 0 || 0 === this.getValueLength(value);
     };
 

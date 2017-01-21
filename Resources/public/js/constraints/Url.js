@@ -12,7 +12,7 @@ function SymfonyComponentValidatorConstraintsUrl() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (!f.isValueEmty(value) && !regexp.test(value)) {
+        if (!f.isValueEmpty(value) && !regexp.test(value)) {
             element.domNode.value = 'http://' + value;
             errors.push(this.message.replace('{{ value }}', FpJsBaseConstraint.formatValue('http://' + value)));
         }

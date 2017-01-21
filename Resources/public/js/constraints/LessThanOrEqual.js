@@ -10,7 +10,7 @@ function SymfonyComponentValidatorConstraintsLessThanOrEqual() {
 
     this.validate = function (value) {
         var f = FpJsFormValidator;
-        if (f.isValueEmty(value) || value <= this.value) {
+        if (f.isValueEmpty(value) || value <= this.value) {
             return [];
         } else {
             return [

@@ -46,9 +46,9 @@ var FpJsDomUtility = {
     }
 };
 
-function FpJsFormError(message) {
+function FpJsFormError(message, atPath) {
     this.message = message;
-    this.atPath = null;
+    this.atPath = atPath;
 
     this.getTarget = function (rootElement) {
         if (!this.atPath) {
@@ -106,6 +106,26 @@ function FpJsFormElement() {
         }
 
         return domNode;
+    };
+
+    this.get = function (stringPath) {
+        var path = stringPath.split('.');
+        var targetElement = this;
+        var pathSegment;
+
+        while (pathSegment = path.shift()) {
+            if (!targetElement.children[pathSegment]) {
+                throw new Error('Invalid form element path "' + stringPath + '"');
+            }
+
+            targetElement = targetElement.children[pathSegment];
+        }
+
+        return targetElement;
+    };
+
+    this.getValue = function () {
+        return FpJsFormValidator.getElementValue(this);
     };
 
     this.validate = function () {
@@ -667,7 +687,7 @@ var FpJsFormValidator = new function () {
      */
     this.validateElement = function (element) {
         var errors = [];
-        var value = this.getElementValue(element);
+        var value = element.getValue();
 
         for (var type in element.data) {
             if ('entity' == type && element.parent && !this.shouldValidEmbedded(element)) {
@@ -1225,7 +1245,7 @@ var FpJsFormValidator = new function () {
      *
      * @returns boolean
      */
-    this.isValueEmty = function (value) {
+    this.isValueEmpty = function (value) {
         return [undefined, null, false].indexOf(value) >= 0 || 0 === this.getValueLength(value);
     };
 
@@ -1301,7 +1321,7 @@ function SymfonyComponentValidatorConstraintsBlank() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (!f.isValueEmty(value)) {
+        if (!f.isValueEmpty(value)) {
             errors.push(this.message.replace('{{ value }}', FpJsBaseConstraint.formatValue(value)));
         }
 
@@ -1536,7 +1556,7 @@ function SymfonyComponentValidatorConstraintsDate() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (!f.isValueEmty(value) && !regexp.test(value)) {
+        if (!f.isValueEmpty(value) && !regexp.test(value)) {
             errors.push(this.message.replace('{{ value }}', FpJsBaseConstraint.formatValue(value)));
         }
 
@@ -1558,7 +1578,7 @@ function SymfonyComponentValidatorConstraintsDateTime() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (!f.isValueEmty(value) && !regexp.test(value)) {
+        if (!f.isValueEmpty(value) && !regexp.test(value)) {
             errors.push(this.message.replace('{{ value }}', FpJsBaseConstraint.formatValue(value)));
         }
 
@@ -1579,7 +1599,7 @@ function SymfonyComponentValidatorConstraintsEmail() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (!f.isValueEmty(value) && !regexp.test(value)) {
+        if (!f.isValueEmpty(value) && !regexp.test(value)) {
             errors.push(this.message.replace('{{ value }}', FpJsBaseConstraint.formatValue(value)));
         }
 
@@ -1601,7 +1621,7 @@ function SymfonyComponentValidatorConstraintsEqualTo() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (!f.isValueEmty(value) && this.value != value) {
+        if (!f.isValueEmpty(value) && this.value != value) {
             errors.push(
                 this.message
                     .replace('{{ value }}', FpJsBaseConstraint.formatValue(value))
@@ -1634,7 +1654,7 @@ function SymfonyComponentValidatorConstraintsGreaterThan() {
 
     this.validate = function (value) {
         var f = FpJsFormValidator;
-        if (f.isValueEmty(value) || value > this.value) {
+        if (f.isValueEmpty(value) || value > this.value) {
             return [];
         } else {
             return [
@@ -1658,7 +1678,7 @@ function SymfonyComponentValidatorConstraintsGreaterThanOrEqual() {
 
     this.validate = function (value) {
         var f = FpJsFormValidator;
-        if (f.isValueEmty(value) || value >= this.value) {
+        if (f.isValueEmpty(value) || value >= this.value) {
             return [];
         } else {
             return [
@@ -1709,7 +1729,7 @@ function SymfonyComponentValidatorConstraintsIp() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (!f.isValueEmty(value) && !regexp.test(value)) {
+        if (!f.isValueEmpty(value) && !regexp.test(value)) {
             errors.push(this.message.replace('{{ value }}', FpJsBaseConstraint.formatValue(value)));
         }
 
@@ -1847,7 +1867,7 @@ function SymfonyComponentValidatorConstraintsLessThan() {
 
     this.validate = function (value) {
         var f = FpJsFormValidator;
-        if (f.isValueEmty(value) || value < this.value) {
+        if (f.isValueEmpty(value) || value < this.value) {
             return [];
         } else {
             return [
@@ -1871,7 +1891,7 @@ function SymfonyComponentValidatorConstraintsLessThanOrEqual() {
 
     this.validate = function (value) {
         var f = FpJsFormValidator;
-        if (f.isValueEmty(value) || value <= this.value) {
+        if (f.isValueEmpty(value) || value <= this.value) {
             return [];
         } else {
             return [
@@ -1896,7 +1916,7 @@ function SymfonyComponentValidatorConstraintsNotBlank() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (f.isValueEmty(value)) {
+        if (f.isValueEmpty(value)) {
             errors.push(this.message.replace('{{ value }}', FpJsBaseConstraint.formatValue(value)));
         }
 
@@ -1998,7 +2018,7 @@ function SymfonyComponentValidatorConstraintsRange() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (f.isValueEmty(value)) {
+        if (f.isValueEmpty(value)) {
             return errors;
         }
         if (isNaN(value)) {
@@ -2046,7 +2066,7 @@ function SymfonyComponentValidatorConstraintsRegex() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (!f.isValueEmty(value) && !this.pattern.test(value)) {
+        if (!f.isValueEmpty(value) && !this.pattern.test(value)) {
             errors.push(this.message.replace('{{ value }}', FpJsBaseConstraint.formatValue(value)));
         }
 
@@ -2073,7 +2093,7 @@ function SymfonyComponentValidatorConstraintsTime() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (!f.isValueEmty(value) && !regexp.test(value)) {
+        if (!f.isValueEmpty(value) && !regexp.test(value)) {
             errors.push(this.message.replace('{{ value }}', FpJsBaseConstraint.formatValue(value)));
         }
 
@@ -2293,7 +2313,7 @@ function SymfonyComponentValidatorConstraintsUrl() {
         var errors = [];
         var f = FpJsFormValidator;
 
-        if (!f.isValueEmty(value) && !regexp.test(value)) {
+        if (!f.isValueEmpty(value) && !regexp.test(value)) {
             element.domNode.value = 'http://' + value;
             errors.push(this.message.replace('{{ value }}', FpJsBaseConstraint.formatValue('http://' + value)));
         }
