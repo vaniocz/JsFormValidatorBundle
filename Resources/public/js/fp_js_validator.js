@@ -25,13 +25,6 @@ var FpJsDomUtility = {
             element.className += ' ' + className;
         }
     },
-    getActiveElement: function () {
-        try {
-            return 'activeElement' in document ? document.activeElement : document.querySelector(':focus');
-        } catch (e) {}
-
-        return null;
-    },
     getOffset: function (element) {
         var rect = element.getBoundingClientRect();
         var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
@@ -168,8 +161,6 @@ function FpJsFormElement() {
             return true;
         }
 
-        this.focus();
-
         return false;
     };
 
@@ -282,45 +273,6 @@ function FpJsFormElement() {
             li.innerHTML = errors[i];
             ul.appendChild(li);
         }
-    };
-
-    this.focus = function () {
-        var domNode = this.getFocusDomNode();
-
-        if (!domNode) {
-            return;
-        }
-
-        var activeElement = FpJsDomUtility.getActiveElement();
-
-        if (
-            !activeElement
-            || !activeElement.form
-            || activeElement.form !== domNode.form
-            || activeElement.getAttribute('type') === 'submit'
-            || activeElement.tagName.toLowerCase() === 'button'
-        ) {
-            domNode.focus();
-        }
-    };
-
-    this.getFocusDomNode = function () {
-        var domNode = this.getDomNode();
-
-        if ('focus' in domNode && 'value' in domNode) {
-            return domNode;
-        }
-
-        for (var childName in this.children) {
-            var child = this.children[childName];
-            domNode = child.getDomNode();
-
-            if ('focus' in domNode && 'value' in domNode) {
-                return domNode;
-            }
-        }
-
-        return undefined;
     };
 
     this.onValidate = function (errors, event) {
