@@ -618,14 +618,18 @@ class JsFormValidatorFactory
         return implode("\n", $result);
     }
 
+    /**
+     * @param ResolvedFormTypeInterface $formType
+     * @return string[]
+     */
     private function getFormTypeHierarchy(ResolvedFormTypeInterface $formType)
     {
-        $type = array(get_class($formType));
+        $typeHierarchy = array(get_class($formType->getInnerType()));
 
         while ($formType = $formType->getParent()) {
-            $type[] = get_class($formType);
+            $typeHierarchy[] = get_class($formType->getInnerType());
         }
 
-        return $type;
+        return $typeHierarchy;
     }
 }
