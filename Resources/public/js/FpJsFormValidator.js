@@ -1072,10 +1072,10 @@ var FpJsFormValidator = new function () {
      * @param {FpJsFormElement} element
      */
     this.getErrorPathElement = function (element) {
-        if (!element.bubbling) {
-            return element;
+        if (element.bubbling && element.parent) {
+            return this.getErrorPathElement(element.parent);
         } else {
-            return this.getRootElement(element);
+            return element;
         }
     };
 
