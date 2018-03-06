@@ -36,7 +36,17 @@ var FpJsDomUtility = {
             top: Math.round(rect.top +  scrollTop - clientTop),
             left: Math.round(rect.left + scrollLeft - clientLeft)
         };
-    }
+    },
+    isSubmitElement: function (element) {
+        if (!element || element.nodeType !== 1) {
+            return false;
+        }
+
+        var tag = element.tagName.toLowerCase();
+        var type = element.getAttribute('type');
+
+        return (tag === 'input' || tag === 'button') && type && type.toLocaleLowerCase() === 'submit';
+    },
 };
 
 function FpJsFormError(message, atPath) {
@@ -77,6 +87,7 @@ function FpJsFormElement() {
     this.children = {};
     this.parent = null;
     this.domNode = null;
+    this.clickedButton = null;
 
     this.callbacks = {};
     this.errors = {};
@@ -279,7 +290,15 @@ function FpJsFormElement() {
     };
 
     this.submitForm = function (form) {
+        if (this.jsFormValidator.clickedButton) {
+            var submitHelper = document.createElement('input');
+            submitHelper.type = 'hidden';
+            submitHelper.name = this.jsFormValidator.clickedButton.name;
+            form.appendChild(submitHelper);
+        }
+
         form.submit();
+        form.removeChild(submitHelper);
     };
 }
 
@@ -932,8 +951,18 @@ var FpJsFormValidator = new function () {
      * @param {HTMLFormElement} form
      */
     this.attachDefaultEvent = function (element, form) {
+        form.addEventListener('click', function (event) {
+            var node = event.target;
+
+            do {
+                if (FpJsDomUtility.isSubmitElement(node)) {
+                    element.clickedButton = node;
+                }
+            } while (node = node.parentNode);
+        });
         form.addEventListener('submit', function (event) {
             FpJsFormValidator.customize(form, 'submitForm', event);
+            element.clickedButton = null;
         });
     };
 

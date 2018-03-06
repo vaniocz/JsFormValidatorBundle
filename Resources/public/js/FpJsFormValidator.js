@@ -25,13 +25,6 @@ var FpJsDomUtility = {
             element.className += ' ' + className;
         }
     },
-    getActiveElement: function () {
-        try {
-            return 'activeElement' in document ? document.activeElement : document.querySelector(':focus');
-        } catch (e) {}
-
-        return null;
-    },
     getOffset: function (element) {
         var rect = element.getBoundingClientRect();
         var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
@@ -43,7 +36,17 @@ var FpJsDomUtility = {
             top: Math.round(rect.top +  scrollTop - clientTop),
             left: Math.round(rect.left + scrollLeft - clientLeft)
         };
-    }
+    },
+    isSubmitElement: function (element) {
+        if (!element || element.nodeType !== 1) {
+            return false;
+        }
+
+        var tag = element.tagName.toLowerCase();
+        var type = element.getAttribute('type');
+
+        return (tag === 'input' || tag === 'button') && type && type.toLocaleLowerCase() === 'submit';
+    },
 };
 
 function FpJsFormError(message, atPath) {
@@ -84,28 +87,13 @@ function FpJsFormElement() {
     this.children = {};
     this.parent = null;
     this.domNode = null;
+    this.clickedButton = null;
 
     this.callbacks = {};
     this.errors = {};
 
     this.groups = function () {
         return ['Default'];
-    };
-
-    this.get = function (stringPath) {
-        var path = stringPath.split('.');
-        var targetElement = this;
-        var pathSegment;
-
-        while (pathSegment = path.shift()) {
-            if (!targetElement.children[pathSegment]) {
-                throw new Error('Invalid form element path "' + stringPath + '"');
-            }
-
-            targetElement = targetElement.children[pathSegment];
-        }
-
-        return targetElement;
     };
 
     this.getDomNode = function () {
@@ -122,6 +110,22 @@ function FpJsFormElement() {
         }
 
         return domNode;
+    };
+
+    this.get = function (stringPath) {
+        var path = stringPath.split('.');
+        var targetElement = this;
+        var pathSegment;
+
+        while (pathSegment = path.shift()) {
+            if (!targetElement.children[pathSegment]) {
+                throw new Error('Invalid form element path "' + stringPath + '"');
+            }
+
+            targetElement = targetElement.children[pathSegment];
+        }
+
+        return targetElement;
     };
 
     this.getValue = function () {
@@ -167,8 +171,6 @@ function FpJsFormElement() {
         if (validationErrors.length === 0) {
             return true;
         }
-
-        this.focus();
 
         return false;
     };
@@ -284,50 +286,19 @@ function FpJsFormElement() {
         }
     };
 
-    this.focus = function () {
-        var domNode = this.getFocusDomNode();
-
-        if (!domNode) {
-            return;
-        }
-
-        var activeElement = FpJsDomUtility.getActiveElement();
-
-        if (
-            !activeElement
-            || !activeElement.form
-            || activeElement.form !== domNode.form
-            || activeElement.getAttribute('type') === 'submit'
-            || activeElement.tagName.toLowerCase() === 'button'
-        ) {
-            domNode.focus();
-        }
-    };
-
-    this.getFocusDomNode = function () {
-        var domNode = this.getDomNode();
-
-        if ('focus' in domNode && 'value' in domNode) {
-            return domNode;
-        }
-
-        for (var childName in this.children) {
-            var child = this.children[childName];
-            domNode = child.getDomNode();
-
-            if ('focus' in domNode && 'value' in domNode) {
-                return domNode;
-            }
-        }
-
-        return undefined;
-    };
-
     this.onValidate = function (errors, event) {
     };
 
     this.submitForm = function (form) {
+        if (form.jsFormValidator.clickedButton) {
+            var submitHelper = document.createElement('input');
+            submitHelper.type = 'hidden';
+            submitHelper.name = form.jsFormValidator.clickedButton.name;
+            form.appendChild(submitHelper);
+        }
+
         form.submit();
+        form.removeChild(submitHelper);
     };
 }
 
@@ -980,8 +951,18 @@ var FpJsFormValidator = new function () {
      * @param {HTMLFormElement} form
      */
     this.attachDefaultEvent = function (element, form) {
+        form.addEventListener('click', function (event) {
+            var node = event.target;
+
+            do {
+                if (FpJsDomUtility.isSubmitElement(node)) {
+                    element.clickedButton = node;
+                }
+            } while (node = node.parentNode);
+        });
         form.addEventListener('submit', function (event) {
             FpJsFormValidator.customize(form, 'submitForm', event);
+            element.clickedButton = null;
         });
     };
 
