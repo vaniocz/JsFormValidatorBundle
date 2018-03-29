@@ -47,6 +47,20 @@ var FpJsDomUtility = {
 
         return (tag === 'input' || tag === 'button') && type && type.toLocaleLowerCase() === 'submit';
     },
+    dispatchEvent: function (element, name, parameters) {
+        if (window.CustomEvent) {
+            var event = new CustomEvent(name, parameters);
+        } else {
+            var event = document.createEvent('CustomEvent');
+            event.initCustomEvent(name, parameters.bubbles, parameters.cancelable, parameters.detail);
+        }
+
+        if (element.dispatchEvent) {
+            return element.dispatchEvent(event);
+        }
+
+        return true;
+    }
 };
 
 function FpJsFormError(message, atPath) {
@@ -451,25 +465,30 @@ function FpJsCustomizeMethods() {
         //noinspection JSCheckFunctionSignatures
         FpJsFormValidator.each(this, function (item) {
             var element = item.jsFormValidator;
-            if (event) {
-                event.preventDefault();
-            }
             element.validateRecursively();
-            if (FpJsFormValidator.ajax.queue) {
+
+            var onValidate = function () {
+                var errors = FpJsFormValidator.getAllErrors(element, {});
+                element.onValidate.apply(element.domNode, [errors, event]);
+                var parameters = {bubbles: true, detail: {errors: errors}};
+
                 if (event) {
                     event.preventDefault();
                 }
-                FpJsFormValidator.ajax.callbacks.push(function () {
-                    element.onValidate.apply(element.domNode, [FpJsFormValidator.getAllErrors(element, {}), event]);
-                    if (element.isValid()) {
-                        element.submitForm.apply(item, [item]);
-                    }
-                });
-            } else {
-                element.onValidate.apply(element.domNode, [FpJsFormValidator.getAllErrors(element, {}), event]);
+
+                if (!FpJsDomUtility.dispatchEvent(element.domNode, 'fp_js_form_validator_validate', parameters)) {
+                    return;
+                }
+
                 if (element.isValid()) {
                     element.submitForm.apply(item, [item]);
                 }
+            };
+
+            if (FpJsFormValidator.ajax.queue) {
+                FpJsFormValidator.ajax.callbacks.push(onValidate);
+            } else {
+                onValidate();
             }
         });
     };
