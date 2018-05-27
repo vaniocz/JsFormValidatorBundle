@@ -142,8 +142,12 @@ function FpJsFormElement() {
         return targetElement;
     };
 
-    this.getValue = function () {
+    this.getData = function () {
         return FpJsFormValidator.getElementValue(this);
+    };
+
+    this.getValue = function () {
+        return this.getData();
     };
 
     this.validate = function () {
@@ -691,8 +695,14 @@ var FpJsFormValidator = new function () {
             // Evaluate groups
             var groupsValue = element.data[type]['groups'];
             if (typeof groupsValue == "string") {
-                groupsValue = this.getParentElementById(groupsValue, element).groups.apply(element.domNode);
+                var parentElement = this.getParentElementById(groupsValue, element);
+                groupsValue = parentElement.groups.apply(element.domNode, [parentElement, element.domNode]);
+
+                if (typeof groupsValue == 'string') {
+                    groupsValue = [groupsValue];
+                }
             }
+
             errors = errors.concat(this.validateConstraints(
                 value,
                 element.data[type]['constraints'],

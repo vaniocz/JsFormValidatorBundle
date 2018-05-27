@@ -48,6 +48,10 @@ abstract class JsModelAbstract
         if ($value instanceof JsModelAbstract) {
             return $value->toJsString();
         }
+        // For Javascript code
+        elseif ($value instanceof JsCode) {
+            return (string) $value;
+        }
         // For object which has own __toString method
         elseif (is_object($value) && method_exists($value, '__toString')) {
             return self::phpValueToJs($value->__toString());

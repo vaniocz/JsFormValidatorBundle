@@ -42,7 +42,10 @@ class FormExtension extends AbstractTypeExtension
      */
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults(array('js_validation' => true));
+        $resolver->setDefaults(array(
+            'js_validation' => true,
+            'js_validation_groups' => null,
+        ));
     }
 
     /**

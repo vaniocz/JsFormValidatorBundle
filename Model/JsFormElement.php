@@ -55,4 +55,9 @@ class JsFormElement extends JsModelAbstract
      * @var JsFormElement
      */
     public $prototype = null;
-} 
+
+    /**
+     * @var JsCode|null
+     */
+    public $groups = null;
+}

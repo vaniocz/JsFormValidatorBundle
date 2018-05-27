@@ -3,6 +3,7 @@ namespace Fp\JsFormValidatorBundle\Factory;
 
 use Fp\JsFormValidatorBundle\Exception\UndefinedFormException;
 use Fp\JsFormValidatorBundle\Form\Constraint\UniqueEntity;
+use Fp\JsFormValidatorBundle\Model\JsCode;
 use Fp\JsFormValidatorBundle\Model\JsConfig;
 use Fp\JsFormValidatorBundle\Model\JsFormElement;
 use Symfony\Component\Form\ChoiceList\ChoiceListInterface;
@@ -264,6 +265,12 @@ class JsFormValidatorFactory
             $model->prototype = $this->createJsModel($prototype);
         }
 
+        $jsValidationGroups = $form->getConfig()->getOption('js_validation_groups');
+
+        if (is_string($jsValidationGroups)) {
+            $model->groups = $this->getJsGroups($jsValidationGroups);
+        }
+
         // Return self id to add it as child to the parent model
         return $model;
     }
@@ -422,23 +429,22 @@ class JsFormValidatorFactory
      */
     protected function getValidationGroups(Form $form)
     {
-        $result = array('Default');
         $groups = $form->getConfig()->getOption('validation_groups');
+        $jsGroups = $form->getConfig()->getOption('js_validation_groups');
+        $groups = $jsGroups === null ? $groups : $jsGroups;
 
-        if (empty($groups)) {
-            // Try to get groups from a parent
-            if ($form->getParent()) {
-                $result = $this->getValidationGroups($form->getParent());
-            }
-        } elseif (is_array($groups)) {
-            // If groups is an array - return groups as is
-            $result = $groups;
-        } elseif ($groups instanceof \Closure) {
-            // If groups is a Closure - return the form class name to look for javascript
-            $result = $this->getElementId($form);
+        if ($groups instanceof \Closure || is_string($jsGroups)) {
+            // If groups is a JS string or a closure - return the form class name to look for javascript
+            return $this->getElementId($form);
         }
 
-        return $result;
+        if ($groups === false) {
+            return array();
+        } elseif (is_array($groups)) {
+            return $groups;
+        }
+
+        return $form->getParent() ? $this->getValidationGroups($form->getParent()) : array('Default');
     }
 
     /**
@@ -631,5 +637,33 @@ class JsFormValidatorFactory
         }
 
         return $typeHierarchy;
+    }
+
+    /**
+     * @param string $javascript
+     * @return JsCode
+     */
+    private function getJsGroups($javascript): JsCode
+    {
+        if (!$this->hasCodeReturnStatement($javascript)) {
+            $javascript = 'return ' . $javascript;
+        }
+
+        return new JsCode(sprintf('function (form) { %s; }', $javascript));
+    }
+
+    /**
+     * @param string $javascript
+     * @return bool
+     */
+    private function hasCodeReturnStatement($javascript)
+    {
+        foreach (token_get_all(sprintf('<?php %s', str_replace('<?', '', $javascript))) as $token) {
+            if (isset($token[0]) && $token[0] === T_RETURN) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
