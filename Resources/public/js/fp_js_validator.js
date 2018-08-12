@@ -278,13 +278,21 @@ function FpJsFormElement() {
                     ul.parentNode.removeChild(ul);
                 }
 
-                FpJsDomUtility.removeClass(container, FpJsFormValidator.hasErrorClass);
+                FpJsDomUtility.removeClass(domNode, FpJsFormValidator.hasErrorClass);
+
+                if (FpJsDomUtility.hasClass(container, FpJsFormValidator.formGroupClass)) {
+                    FpJsDomUtility.removeClass(container, FpJsFormValidator.hasErrorClass);
+                }
             }
 
             return;
         }
 
-        FpJsDomUtility.addClass(container, FpJsFormValidator.hasErrorClass);
+        FpJsDomUtility.addClass(domNode, FpJsFormValidator.hasErrorClass);
+
+        if (FpJsDomUtility.hasClass(container, FpJsFormValidator.formGroupClass)) {
+            FpJsDomUtility.addClass(container, FpJsFormValidator.hasErrorClass);
+        }
 
         if (!ul) {
             ul = document.createElement('ul');
@@ -579,6 +587,7 @@ var FpJsBaseConstraint = {
 var FpJsFormValidator = new function () {
     this.forms = {};
     this.errorClass = 'form-errors';
+    this.formGroupClass = 'form-group';
     this.inputGroupClass = 'input-group';
     this.hasErrorClass = 'has-error';
     this.insertMethod = 'before';
