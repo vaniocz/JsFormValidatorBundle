@@ -48,7 +48,7 @@ var FpJsDomUtility = {
         return (tag === 'input' || tag === 'button') && type && type.toLocaleLowerCase() === 'submit';
     },
     dispatchEvent: function (element, name, parameters) {
-        if (window.CustomEvent) {
+        if (typeof window.CustomEvent === 'function') {
             var event = new CustomEvent(name, parameters);
         } else {
             var event = document.createEvent('CustomEvent');
