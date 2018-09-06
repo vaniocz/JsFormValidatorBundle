@@ -867,6 +867,19 @@ var FpJsFormValidator = new function () {
             || this.isElementType(element, 'Symfony\\Component\\Form\\Extension\\Core\\Type\\RadioType')
         ) {
             value = element.domNode.checked;
+        } else if (this.isElementType(element, 'Vanio\\WebBundle\\Form\\BooleanType')) {
+            var defaultValue = null;
+            var choices = element.domNode.form.elements[element.domNode.name];
+
+            for (var i = 0; i < choices.length; i++) {
+                if (choices[i].checked) {
+                    return choices[i].value;
+                } else if (choices[i].type === 'hidden') {
+                    defaultValue = choices[i].value;
+                }
+            }
+
+            return defaultValue;
         } else if ('select' === element.domNode.tagName.toLowerCase()) {
             value = [];
             var field = element.domNode;
