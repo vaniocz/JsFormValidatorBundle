@@ -20,7 +20,7 @@ function SymfonyComponentValidatorConstraintsCallback () {
             if (null !== method) {
                 method.apply(element.domNode);
             } else {
-                throw new Error('Can not find a "' + this.callback + '" callback for the element id="' + element.id + '" to validate the Callback constraint.');
+                // throw new Error('Can not find a "' + this.callback + '" callback for the element id="' + element.id + '" to validate the Callback constraint.');
             }
         }
 
