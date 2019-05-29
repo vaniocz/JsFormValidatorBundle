@@ -1023,15 +1023,7 @@ var FpJsFormValidator = new function () {
      * @return {HTMLElement|null}
      */
     this.findDomElement = function (model) {
-        var domElement = document.getElementById(model.id);
-        if (!domElement) {
-            var list = document.getElementsByName(model.name);
-            if (list.length) {
-                domElement = list[0];
-            }
-        }
-
-        return domElement;
+        return document.getElementById(model.id);
     };
 
     /**
