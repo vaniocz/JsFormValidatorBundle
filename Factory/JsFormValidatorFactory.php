@@ -267,6 +267,10 @@ class JsFormValidatorFactory
 
         $jsValidationGroups = $form->getConfig()->getOption('js_validation_groups');
 
+        if ($jsValidationGroups instanceof \Closure) {
+            $jsValidationGroups = $jsValidationGroups($form);
+        }
+
         if (is_string($jsValidationGroups)) {
             $model->groups = $this->getJsGroups($jsValidationGroups);
         }
