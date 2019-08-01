@@ -1,4 +1,19 @@
 var FpJsDomUtility = {
+    getElementByAttributeValue(tagName, attribute, value) {
+        if (document.querySelector) {
+            return document.querySelector(tagName + '[for="' + value + '"]');
+        }
+
+        var labels = document.getElementsByTagName(tagName);
+
+        for (i = 0; i < labels.length; i++) {
+            if (labels[i].htmlFor === value) {
+                return labels[i];
+            }
+        }
+
+        return null;
+    },
     previousElementSibling: function (element) {
         var e = element ? element.previousSibling : null;
         while (e && 1 !== e.nodeType) e = e.previousSibling;
@@ -252,14 +267,35 @@ function FpJsFormElement() {
         if (!(this instanceof HTMLElement)) {
             return;
         }
+
         //noinspection JSValidateTypes
-        /**
-         * @type {HTMLElement}
-         */
+        /** @type {HTMLElement} */
         var domNode = this;
+
+        if (
+            domNode.id
+            && domNode.tagName.toLowerCase() === 'input'
+            && ['checkbox', 'radio'].indexOf(domNode.type.toLowerCase()) !== -1
+        ) {
+            var label = FpJsDomUtility.getElementByAttributeValue('label', 'for', domNode.id);
+
+            if (label) {
+                if (FpJsFormValidator.insertMethod === 'after') {
+                    if (domNode.compareDocumentPosition(label) & Node.DOCUMENT_POSITION_FOLLOWING) {
+                        domNode = label;
+                    }
+                } else if (FpJsFormValidator.insertMethod === 'before') {
+                    if (domNode.compareDocumentPosition(label) & Node.DOCUMENT_POSITION_PRECEDING) {
+                        domNode = label;
+                    }
+                }
+            }
+        }
+
         if (FpJsDomUtility.hasClass(domNode.parentNode, FpJsFormValidator.inputGroupClass)) {
             domNode = domNode.parentNode;
         }
+
         var ul = FpJsFormValidator.getDefaultErrorContainerNode(domNode);
         if (ul) {
             var len = ul.childNodes.length;
