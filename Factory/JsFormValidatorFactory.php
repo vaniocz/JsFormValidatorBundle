@@ -8,6 +8,7 @@ use Fp\JsFormValidatorBundle\Model\JsConfig;
 use Fp\JsFormValidatorBundle\Model\JsFormElement;
 use Symfony\Component\Form\ChoiceList\ChoiceListInterface;
 use Symfony\Component\Form\DataTransformerInterface;
+use Symfony\Component\Form\Extension\Core\DataTransformer\NumberToLocalizedStringTransformer;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Form;
@@ -509,6 +510,14 @@ class JsFormValidatorFactory
             }
 
             $item['name'] = get_class($trans);
+
+            if ($trans instanceof NumberToLocalizedStringTransformer) {
+                $formatter = new \NumberFormatter(\Locale::getDefault(), \NumberFormatter::DECIMAL);
+                $item += [
+                    'decimalSeparator' => $formatter->getSymbol(\NumberFormatter::DECIMAL_SEPARATOR_SYMBOL),
+                    'groupingSeparator' => $formatter->getSymbol(\NumberFormatter::GROUPING_SEPARATOR_SYMBOL)
+                ];
+            }
 
             $result[] = $item;
         }
