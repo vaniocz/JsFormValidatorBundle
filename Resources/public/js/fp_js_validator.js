@@ -1,5 +1,5 @@
 var FpJsDomUtility = {
-    getElementByAttributeValue(tagName, attribute, value) {
+    getElementByAttributeValue: function (tagName, attribute, value) {
         if (document.querySelector) {
             return document.querySelector(tagName + '[for="' + value + '"]');
         }
