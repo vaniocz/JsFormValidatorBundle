@@ -2465,7 +2465,7 @@ function SymfonyComponentFormExtensionCoreDataTransformerNumberToLocalizedString
         }
 
         if (this.grouping && this.groupingSeparator) {
-            value = value.replace(new RegExp(`\\${this.groupingSeparator}`, 'g'), '');
+            value = value.replace(new RegExp('\\' + this.groupingSeparator, 'g'), '');
         }
 
         return Number(value);
