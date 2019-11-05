@@ -2137,11 +2137,10 @@ function SymfonyComponentValidatorConstraintsRegex() {
         var pairDelimiters = {'(': ')', '[': ']', '{': '}', '<': '>'};
         var startDelimiter = this.pattern.trim()[0];
         var endDelimiter = pairDelimiters[startDelimiter] || startDelimiter;
-        var startPosition = this.pattern.indexOf(startDelimiter) + 1;
+        var startPosition = this.pattern.indexOf(startDelimiter);
         var endPosition = this.pattern.lastIndexOf(endDelimiter);
-        var flagsPosition = this.pattern.lastIndexOf(endDelimiter);
-        var flags = flagsPosition ? this.pattern.substr(flagsPosition + 1) : '';
-        this.pattern = new RegExp(this.pattern.slice(startPosition, endPosition), flags);
+        var flags = this.pattern.slice(endPosition + 1);
+        this.pattern = new RegExp(this.pattern.slice(startPosition + 1, endPosition), flags);
     }
 }
 
