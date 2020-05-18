@@ -518,7 +518,7 @@ function FpJsCustomizeMethods() {
             var onValidate = function () {
                 var errors = FpJsFormValidator.getAllErrors(element, {});
                 element.onValidate.apply(element.domNode, [errors, event]);
-                var parameters = {bubbles: true, detail: {errors: errors}};
+                var parameters = {bubbles: true, detail: {element: element, errors: errors}};
 
                 if (event) {
                     event.preventDefault();
