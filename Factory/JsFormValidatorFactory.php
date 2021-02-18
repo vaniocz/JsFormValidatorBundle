@@ -110,7 +110,7 @@ class JsFormValidatorFactory
      */
     protected function translateMessage($message, array $parameters = array())
     {
-        return $this->translator->transChoice($message, 0, $parameters, $this->transDomain);
+        return $this->translator->trans($message, $parameters, $this->transDomain);
     }
 
     /**
